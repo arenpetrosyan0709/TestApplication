@@ -1,32 +1,25 @@
 package com.itc.demo.entities;
 
 import org.springframework.data.annotation.Id;
-
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.lang.NonNull;
 
 public class Runner {
-    static final OffsetDateTime MIN_BIRTH_DAY;
-    static final OffsetDateTime MAX_BIRTH_DAY;
-
-    static {
-        MIN_BIRTH_DAY = OffsetDateTime.now().minusYears(118);
-        MAX_BIRTH_DAY =  OffsetDateTime.now().minusYears(18);
-    }
 
     @Id
     private String id;
-
+    @NonNull
     private String first_name;
+    @NonNull
     private String last_name;
+    @NonNull
     private String birth_date;
+    @NonNull
     private String sex;
 
-    public Runner(String first_name, String last_name, String birth_date, String sex) {
-        this.first_name = first_name;
-        this.last_name = last_name;
-        this.birth_date = birth_date;
+    public Runner(String firstName, String lastName, String birthDate, String sex) {
+        this.first_name = firstName;
+        this.last_name = lastName;
+        this.birth_date = birthDate;
         this.sex = sex;
     }
 
@@ -38,33 +31,28 @@ public class Runner {
         return id;
     }
 
-    public String getFirst_name() {
+    public String getFirstName() {
         return first_name;
     }
 
-    public void setFirst_name(String first_name) {
+    public void setFirstName(String first_name) {
         this.first_name = first_name;
     }
 
-    public String getLast_name() {
+    public String getLastName() {
         return last_name;
     }
 
-    public void setLast_name(String last_name) {
+    public void setLastName(String last_name) {
         this.last_name = last_name;
     }
 
-    public String getBirth_date() {
+    public String getBirthDate() {
         return birth_date;
     }
 
-    public void setBirth_date(String birth_date) {
-        OffsetDateTime dateTime = OffsetDateTime.parse(birth_date) ;
-        if (dateTime.isAfter(MIN_BIRTH_DAY) && dateTime.isBefore(MAX_BIRTH_DAY)) {
-            this.birth_date = dateTime.toString();
-        } else {
-
-        }
+    public void setBirthDate(String birth_date) {
+        this.birth_date = birth_date;
     }
 
     public String getSex() {
@@ -72,32 +60,7 @@ public class Runner {
     }
 
     public void setSex(String sex) {
-        if (sex.toLowerCase().equals("m") || sex.toLowerCase().equals("f")) {
-            this.sex = sex;
-        } else {
-
-        }
-    }
-    public void StartRun(Long userId, double start_latitude, double start_longitude, OffsetDateTime start_datetime) {
-
-    }
-
-    public void FinishRun(Long userId, double finish_latitude, double finish_longitude, OffsetDateTime finish_datetime) {
-
-    }
-
-    public void FinishRun(Long userId, double finish_latitude, double finish_longitude, OffsetDateTime finish_datetime, Long distance) {
-
-
-    }
-    public List<Runs> getAllRuns(Long userId) {
-        List runs = new ArrayList();
-        return runs;
-    }
-
-    public List<Runs> getSortedRunsByTime(Long userId, OffsetDateTime from_datetime, OffsetDateTime to_datetime) {
-        List runs = new ArrayList();
-        return runs;
+        this.sex = sex;
     }
 
 }
