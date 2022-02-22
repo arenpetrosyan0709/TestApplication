@@ -15,6 +15,7 @@ public class RunnerService {
     public void add(String first_name, String last_name, String birth_date, String sex) {
         Runner runner = new Runner(first_name, last_name, birth_date, sex);
         runnerRepository.save(runner);
+
     }
 
 

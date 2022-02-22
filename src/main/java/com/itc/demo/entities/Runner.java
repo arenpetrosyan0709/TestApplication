@@ -16,7 +16,7 @@ public class Runner {
     }
 
     @Id
-    private Long id;
+    private String id;
 
     private String first_name;
     private String last_name;
@@ -34,7 +34,7 @@ public class Runner {
 
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
