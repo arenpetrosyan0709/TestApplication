@@ -60,51 +60,51 @@ public class Run {
         this.userId = userId;
     }
 
-    public double getStart_latitude() {
+    public double getStartLatitude() {
         return start_latitude;
     }
 
-    public void setStart_latitude(double start_latitude) {
+    public void setStartLatitude(double start_latitude) {
         this.start_latitude = start_latitude;
     }
 
-    public double getStart_longitude() {
+    public double getStartLongitude() {
         return start_longitude;
     }
 
-    public void setStart_longitude(double start_longitude) {
+    public void setStartLongitude(double start_longitude) {
         this.start_longitude = start_longitude;
     }
 
-    public String getStart_datetime() {
+    public String getStartDatetime() {
         return start_datetime;
     }
 
-    public void setStart_datetime(String start_datetime) {
+    public void setStartDatetime(String start_datetime) {
         this.start_datetime = start_datetime;
     }
 
-    public double getFinish_latitude() {
+    public double getFinishLatitude() {
         return finish_latitude;
     }
 
-    public void setFinish_latitude(double finish_latitude) {
+    public void setFinishLatitude(double finish_latitude) {
         this.finish_latitude = finish_latitude;
     }
 
-    public double getFinish_longitude() {
+    public double getFinishLongitude() {
         return finish_longitude;
     }
 
-    public void setFinish_longitude(double finish_longitude) {
+    public void setFinishLongitude(double finish_longitude) {
         this.finish_longitude = finish_longitude;
     }
 
-    public String getFinish_datetime() {
+    public String getFinishDatetime() {
         return finish_datetime;
     }
 
-    public void setFinish_datetime(String finish_datetime) {
+    public void setFinishDatetime(String finish_datetime) {
         this.finish_datetime = finish_datetime;
     }
 

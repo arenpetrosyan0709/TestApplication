@@ -69,7 +69,7 @@ public class RunnerService {
 
         Runner runner = new Runner(correctFirstName, correctLastName, correctBirthDate, correctSex);
         runnerRepository.save(runner);
-        return "Success";
+        return "Success. Runner with id " + runner.getId() + " has been created";
     }
 
     public String getRunner (String userId) throws JsonProcessingException {
@@ -91,7 +91,7 @@ public class RunnerService {
         return result;
     }
 
-    public String edit (String userId, String firstName, String lastName, String birthDate, String sex) {
+    public String edit(String userId, String firstName, String lastName, String birthDate, String sex) {
         boolean firstNameToEdit = false;
         boolean lastNameToEdit = false;
         boolean birthDateToEdit = false;
@@ -147,7 +147,7 @@ public class RunnerService {
         if (birthDateToEdit) { runner.setBirthDate(correctBirthDate); }
         if (sexToEdit) { runner.setSex(correctSex); }
         runnerRepository.save(runner);
-        return "Success";
+        return "Success. Runner with id " + runner.getId() + " has been updated";
     }
 
     private boolean checkInputName (String name) {

@@ -5,11 +5,11 @@ public class HaversineAlgorithm {
     static final double equatorialEarthRadius = 6378.1370D;
     static final double d2r = (Math.PI / 180D);
 
-    public static int HaversineInM(double lat1, double long1, double lat2, double long2) {
-        return (int) (1000D * HaversineInKM(lat1, long1, lat2, long2));
+    public static Long distanceInM(double lat1, double long1, double lat2, double long2) {
+        return (long) (1000D * distanceInKM(lat1, long1, lat2, long2));
     }
 
-    public static double HaversineInKM(double lat1, double long1, double lat2, double long2) {
+    public static double distanceInKM(double lat1, double long1, double lat2, double long2) {
         double dlong = (long2 - long1) * d2r;
         double dlat = (lat2 - lat1) * d2r;
         double a = Math.pow(Math.sin(dlat / 2D), 2D) + Math.cos(lat1 * d2r) * Math.cos(lat2 * d2r)
