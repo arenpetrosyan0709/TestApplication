@@ -24,6 +24,10 @@ public class Runner {
     }
 
     public Runner() {
+        first_name = null;
+        last_name = null;
+        birth_date = null;
+        sex = null;
 
     }
 

@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class RunnerService {
@@ -33,6 +35,12 @@ public class RunnerService {
         String correctBirthDate;
         String correctSex;
 
+        if (firstName==null || lastName==null || birthDate==null || sex==null) {
+            return "Empty fields are not allowed";
+        }
+        if (firstName.equals("") || lastName.equals("") || birthDate.equals("") || sex.equals("")) {
+            return "Empty fields are not allowed";
+        }
         if (checkInputName(firstName)) {
             correctFirstName = firstName;
         } else {
@@ -61,15 +69,26 @@ public class RunnerService {
         runnerRepository.save(runner);
         return "Success";
     }
+
     public String getRunner (String userId) throws JsonProcessingException {
         Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
         Runner runner = runners.iterator().next();
         ObjectMapper mapper = new ObjectMapper();
         String result = mapper.writeValueAsString(runner);
-        return runner.toString();
-
-        //return result;
+        return result;
     }
+
+    public List<Object> getAllRunners() throws JsonProcessingException {
+        List result = new ArrayList();
+        Iterable<Runner> runners = runnerRepository.findAll();
+        for (Object runner : runners) {
+            ObjectMapper mapper = new ObjectMapper();
+            String runnerData = mapper.writeValueAsString(runner);
+            result.add(runnerData);
+        }
+        return result;
+    }
+
     public String edit (String userId, String firstName, String lastName, String birthDate, String sex) {
         boolean firstNameToEdit = false;
         boolean lastNameToEdit = false;

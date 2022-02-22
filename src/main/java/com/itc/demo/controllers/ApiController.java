@@ -33,6 +33,12 @@ public class ApiController {
         return result;
     }
 
+    @GetMapping (value = "/getrunners")
+    public Object getRunners() throws JsonProcessingException {
+        Object result = runnerService.getAllRunners().toString();
+        return result;
+    }
+
     @PostMapping (value = "/editrunner")
     public String editRunner (@RequestBody() JsonNode body) {
         String result = runnerService.edit(body.get("userId").asText(), body.get("firstName").asText(), body.get("lastName").asText(), body.get("birthDate").asText(), body.get("sex").asText());
