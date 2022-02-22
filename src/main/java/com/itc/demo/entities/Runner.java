@@ -1,19 +1,14 @@
 package com.itc.demo.entities;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.lang.NonNull;
 
 public class Runner {
 
     @Id
     private String id;
-    @NonNull
     private String first_name;
-    @NonNull
     private String last_name;
-    @NonNull
     private String birth_date;
-    @NonNull
     private String sex;
 
     public Runner(String firstName, String lastName, String birthDate, String sex) {
@@ -24,11 +19,6 @@ public class Runner {
     }
 
     public Runner() {
-        first_name = null;
-        last_name = null;
-        birth_date = null;
-        sex = null;
-
     }
 
     public String getId() {

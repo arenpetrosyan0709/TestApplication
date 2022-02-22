@@ -3,15 +3,17 @@ package com.itc.demo.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.itc.demo.services.RunnerService;
+import com.itc.demo.services.RunsService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/application/api")
 public class ApiController {
-
+    private final RunsService runsServise;
     private final RunnerService runnerService;
 
-    public ApiController(RunnerService runnerService) {
+    public ApiController(RunsService runsServise, RunnerService runnerService) {
+        this.runsServise = runsServise;
         this.runnerService = runnerService;
     }
     @GetMapping(value = "/test")
@@ -42,6 +44,12 @@ public class ApiController {
     @PostMapping (value = "/editrunner")
     public String editRunner (@RequestBody() JsonNode body) {
         String result = runnerService.edit(body.get("userId").asText(), body.get("firstName").asText(), body.get("lastName").asText(), body.get("birthDate").asText(), body.get("sex").asText());
+        return result;
+    }
+
+    @PostMapping (value = "/start")
+    public String startRun (@RequestBody JsonNode body) {
+        String result = runsServise.runStarted(body.get("userId").asText(), body.get("startLatitude").asDouble(), body.get("startLongitude").asDouble(), body.get("startDatetime").asText());
         return result;
     }
 }
