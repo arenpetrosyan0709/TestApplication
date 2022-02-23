@@ -6,6 +6,8 @@ import com.itc.demo.services.RunnerService;
 import com.itc.demo.services.RunsService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/application/api")
 public class ApiController {
@@ -43,6 +45,11 @@ public class ApiController {
         return runnerService.edit(body.get("userId").asText(), body.get("firstName").asText(), body.get("lastName").asText(), body.get("birthDate").asText(), body.get("sex").asText());
     }
 
+    @GetMapping (value = "/deleterunner")
+    public Object deleteRunner(@RequestParam (value = "userId") String userId) {
+        return runnerService.delete(userId);
+    }
+
     @PostMapping (value = "/start")
     public String startRun (@RequestBody JsonNode body) {
         return runsServise.runStarted(body.get("userId").asText(), body.get("startLatitude").asDouble(), body.get("startLongitude").asDouble(), body.get("startDatetime").asText());
@@ -52,5 +59,11 @@ public class ApiController {
     public String finishRun (@RequestBody JsonNode body) {
         return runsServise.runFinished(body.get("runId").asText(), body.get("userId").asText(), body.get("finishLatitude").asDouble(), body.get("finishLongitude").asDouble(), body.get("finishDatetime").asText(), body.get("distance").asLong());
     }
+
+    @GetMapping (value = "/getallruns")
+    public Object getUserRuns(@RequestParam (value = "userId") String userId) {
+        return runsServise.getAllRunsOfRunner(userId).toString();
+    }
+
 }
 

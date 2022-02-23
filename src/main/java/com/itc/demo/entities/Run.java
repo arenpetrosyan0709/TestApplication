@@ -15,6 +15,7 @@ public class Run {
     private String finish_datetime;
     private Long distance;
     private boolean finished;
+    private Long average_speed;
 
     public Run(String id,
                 String userId,
@@ -24,7 +25,9 @@ public class Run {
                 double finishLatitude,
                 double finishLongitude,
                 String finishDatetime,
-                Long distance
+                Long distance,
+                boolean finished,
+                Long averageSpeed
                 ) {
         this.id = id;
         this.userId = userId;
@@ -35,7 +38,6 @@ public class Run {
         this.finish_longitude = finishLongitude;
         this.finish_datetime = finishDatetime;
         this.distance = distance;
-        this.finished = finish_datetime != null && !finish_datetime.equals("") && !finish_datetime.equals("null");
     }
 
     public Run(){
@@ -120,7 +122,15 @@ public class Run {
         return finished;
     }
 
-    public void setFinished(boolean finished) {
-        this.finished = finished;
+    public void setFinished() {
+        this.finished = true;
+    }
+
+    public Long getAverageSpeed() {
+        return average_speed;
+    }
+
+    public void setAverageSpeed( Long averageSpeed) {
+        this.average_speed = averageSpeed;
     }
 }

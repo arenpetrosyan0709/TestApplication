@@ -38,25 +38,25 @@ public class RunnerService {
         String correctSex;
 
         if (firstName==null || lastName==null || birthDate==null || sex==null) {
-            return "Empty fields are not allowed";
+            return "Empty fields are not allowed.";
         }
         if (firstName.equals("") || lastName.equals("") || birthDate.equals("") || sex.equals("")) {
-            return "Empty fields are not allowed";
+            return "Empty fields are not allowed.";
         }
         if (checkInputName(firstName)) {
             correctFirstName = firstName;
         } else {
-            return "Incorrect First Name";
+            return "Incorrect First Name.";
         }
         if (checkInputName(lastName)) {
             correctLastName = lastName;
         } else {
-            return "Incorrect Last Name";
+            return "Incorrect Last Name.";
         }
         if (checkInputBirthDate(birthDate)) {
             correctBirthDate = birthDate;
         } else {
-            return "Incorrect Birth Date";
+            return "Incorrect Birth Date.";
         }
 
         if (sex.equalsIgnoreCase("m") || sex.equalsIgnoreCase("male")) {
@@ -64,20 +64,25 @@ public class RunnerService {
         } else if (sex.equalsIgnoreCase("f") || sex.equalsIgnoreCase("female")) {
             correctSex = "female";
         } else {
-            return "Incorrect Sex";
+            return "Incorrect Sex.";
         }
 
         Runner runner = new Runner(correctFirstName, correctLastName, correctBirthDate, correctSex);
         runnerRepository.save(runner);
-        return "Success. Runner with id " + runner.getId() + " has been created";
+        return "Success. Runner with id " + runner.getId() + " has been created.";
     }
 
     public String getRunner (String userId) throws JsonProcessingException {
-        Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
-        Runner runner = runners.iterator().next();
-        ObjectMapper mapper = new ObjectMapper();
-        String result = mapper.writeValueAsString(runner);
-        return result;
+        boolean exists = runnerRepository.existsById(userId);
+        if (exists) {
+            Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+            Runner runner = runners.iterator().next();
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(runner);
+        } else {
+            return "User with id " + userId + " was not found.";
+        }
+
     }
 
     public List<Object> getAllRunners() throws JsonProcessingException {
@@ -91,63 +96,88 @@ public class RunnerService {
         return result;
     }
 
+    public String delete(String userId) {
+        boolean exists = runnerRepository.existsById(userId);
+        if (exists) {
+            Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+            Runner runner = runners.iterator().next();
+            runnerRepository.delete(runner);
+            return "Success. Runner " + runner.getFirstName() + " " + runner.getLastName() + " has been deleted.";
+        } else {
+            return "User with id " + userId + " was not found";
+        }
+    }
+
     public String edit(String userId, String firstName, String lastName, String birthDate, String sex) {
-        boolean firstNameToEdit = false;
-        boolean lastNameToEdit = false;
-        boolean birthDateToEdit = false;
-        boolean sexToEdit = false;
+        boolean exists = runnerRepository.existsById(userId);
+        if (exists) {
+            boolean firstNameToEdit = false;
+            boolean lastNameToEdit = false;
+            boolean birthDateToEdit = false;
+            boolean sexToEdit = false;
 
-        Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
-        Runner runner = runners.iterator().next();
+            Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+            Runner runner = runners.iterator().next();
 
-        String correctFirstName = runner.getFirstName();
-        String correctLastName = runner.getLastName();
-        String correctBirthDate = runner.getBirthDate();
-        String correctSex = runner.getSex();
+            String correctFirstName = runner.getFirstName();
+            String correctLastName = runner.getLastName();
+            String correctBirthDate = runner.getBirthDate();
+            String correctSex = runner.getSex();
 
-        if ((firstName != "") && (firstName != null) && !firstName.equals("null")) {
-            if (checkInputName(firstName)) {
-                correctFirstName = firstName;
-                firstNameToEdit = true;
-            } else {
-                return "Incorrect First Name";
+            if ((firstName != "") && (firstName != null) && !firstName.equals("null")) {
+                if (checkInputName(firstName)) {
+                    correctFirstName = firstName;
+                    firstNameToEdit = true;
+                } else {
+                    return "Incorrect First Name.";
+                }
             }
-        }
-        if ((lastName != "") && (lastName != null) && !lastName.equals("null")) {
-            if (checkInputName(lastName)) {
-                correctLastName = lastName;
-                lastNameToEdit = true;
-            } else {
-                return "Incorrect Last Name";
+            if ((lastName != "") && (lastName != null) && !lastName.equals("null")) {
+                if (checkInputName(lastName)) {
+                    correctLastName = lastName;
+                    lastNameToEdit = true;
+                } else {
+                    return "Incorrect Last Name.";
+                }
             }
-        }
-        if ((birthDate !="") && (birthDate != null) && !birthDate.equals("null")) {
-            if (checkInputBirthDate(birthDate)) {
-                correctBirthDate = birthDate;
-                birthDateToEdit = true;
-            } else {
-                return "Incorrect Birth Date";
+            if ((birthDate != "") && (birthDate != null) && !birthDate.equals("null")) {
+                if (checkInputBirthDate(birthDate)) {
+                    correctBirthDate = birthDate;
+                    birthDateToEdit = true;
+                } else {
+                    return "Incorrect Birth Date.";
+                }
             }
-        }
 
-        if ((sex != "") && (sex != null) && !sex.equals("null")) {
-            if (sex.equalsIgnoreCase("m") || sex.equalsIgnoreCase("male")) {
-                correctSex = "male";
-                sexToEdit = true;
-            } else if (sex.equalsIgnoreCase("f") || sex.equalsIgnoreCase("female")) {
-                correctSex = "female";
-                sexToEdit = true;
-            } else {
-                return "Incorrect Sex";
+            if ((sex != "") && (sex != null) && !sex.equals("null")) {
+                if (sex.equalsIgnoreCase("m") || sex.equalsIgnoreCase("male")) {
+                    correctSex = "male";
+                    sexToEdit = true;
+                } else if (sex.equalsIgnoreCase("f") || sex.equalsIgnoreCase("female")) {
+                    correctSex = "female";
+                    sexToEdit = true;
+                } else {
+                    return "Incorrect Sex.";
+                }
             }
-        }
 
-        if (firstNameToEdit) { runner.setFirstName(correctFirstName); }
-        if (lastNameToEdit) { runner.setLastName(correctLastName); }
-        if (birthDateToEdit) { runner.setBirthDate(correctBirthDate); }
-        if (sexToEdit) { runner.setSex(correctSex); }
-        runnerRepository.save(runner);
-        return "Success. Runner with id " + runner.getId() + " has been updated";
+            if (firstNameToEdit) {
+                runner.setFirstName(correctFirstName);
+            }
+            if (lastNameToEdit) {
+                runner.setLastName(correctLastName);
+            }
+            if (birthDateToEdit) {
+                runner.setBirthDate(correctBirthDate);
+            }
+            if (sexToEdit) {
+                runner.setSex(correctSex);
+            }
+            runnerRepository.save(runner);
+            return "Success. Runner with id " + runner.getId() + " has been updated.";
+        } else {
+            return "User with id " + userId + " was not found";
+        }
     }
 
     private boolean checkInputName (String name) {
