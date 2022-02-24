@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -72,28 +73,30 @@ public class RunnerService {
         return "Success. Runner with id " + runner.getId() + " has been created.";
     }
 
-    public String getRunner (String userId) throws JsonProcessingException {
+    public Object getRunner (String userId) {
         boolean exists = runnerRepository.existsById(userId);
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
             Runner runner = runners.iterator().next();
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(runner);
+            return createRunnerData(runner);
+
         } else {
             return "User with id " + userId + " was not found.";
         }
 
     }
 
-    public List<Object> getAllRunners() throws JsonProcessingException {
-        List result = new ArrayList();
+    public Object getAllRunners()  {
+        List<HashMap<String, Object>> result = new ArrayList();
         Iterable<Runner> runners = runnerRepository.findAll();
-        for (Object runner : runners) {
-            ObjectMapper mapper = new ObjectMapper();
-            String runnerData = mapper.writeValueAsString(runner);
-            result.add(runnerData);
+        for (Runner runner : runners) {
+            result.add(createRunnerData(runner));
         }
-        return result;
+        if (!result.isEmpty()) {
+            return result;
+        } else {
+            return "There are no runners in database yet.";
+        }
     }
 
     public String delete(String userId) {
@@ -192,6 +195,16 @@ public class RunnerService {
         } else {
             return false;
         }
+    }
+
+    private HashMap<String, Object> createRunnerData(Runner temp) {
+        HashMap<String, Object> runnerData = new HashMap<>();
+        runnerData.put("id", temp.getId());
+        runnerData.put("firstName", temp.getFirstName());
+        runnerData.put("lastName", temp.getLastName());
+        runnerData.put("birthDate", temp.getBirthDate());
+        runnerData.put("sex", temp.getSex());
+        return runnerData;
     }
 
     private boolean checkInputBirthDate (String birthDate) {

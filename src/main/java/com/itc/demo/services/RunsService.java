@@ -8,12 +8,9 @@ import com.itc.demo.repository.RunsRepository;
 import com.itc.demo.utils.HaversineAlgorithm;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class RunsService {
@@ -21,7 +18,6 @@ public class RunsService {
     private final RunnerRepository runnerRepository;
     private final RunsRepository runsRepository;
     private static final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-    private static final DateTimeFormatter dFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public RunsService(RunnerRepository runnerRepository, RunsRepository runsRepository) {
         this.runnerRepository = runnerRepository;
@@ -100,15 +96,13 @@ public class RunsService {
         }
     }
 
-    public Object getAllRunsOfRunner(String userId) throws JsonProcessingException {
+    public Object getAllRunsOfRunner(String userId) {
         boolean runnerExists = runnerRepository.existsById(userId);
-        List<String> result = new ArrayList();
+        List<HashMap<String, Object>> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            for (Object run : runs) {
-                ObjectMapper mapper = new ObjectMapper();
-                String runData = mapper.writeValueAsString(run);
-                result.add(runData);
+            for (Run run : runs) {
+                result.add(createRunData(run));
             }
             return result;
         } else {
@@ -116,67 +110,70 @@ public class RunsService {
         }
     }
 
-    public Object getAllRunsOfRunnerFromTo(String userId, String fromDatetime, String toDatetime) throws JsonProcessingException {
+    public Object getAllRunsOfRunnerFromTo(String userId, String fromDatetime, String toDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
-        List<String> result = new ArrayList();
-        LocalDate from = LocalDate.parse(fromDatetime, dFormatter);
-        LocalDate to = LocalDate.parse(toDatetime, dFormatter);
+        List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            List<Run> runsOfUser = new ArrayList<>();
-            while (runs.iterator().hasNext()) {
-                if (runs.iterator().next().getUserId().equals(userId)) {
-                    runsOfUser.add(runs.iterator().next());
+            Iterator<Run> iterator = runs.iterator();
+            while (iterator.hasNext()) {
+                Run temp = iterator.next();
+                if (temp.getUserId().equals(userId)
+                && LocalDateTime.parse(temp.getStartDatetime(), dtFormatter).isAfter(LocalDateTime.parse(fromDatetime, dtFormatter))
+                && LocalDateTime.parse(temp.getFinishDatetime(), dtFormatter).isBefore(LocalDateTime.parse(toDatetime, dtFormatter))) {
+                    result.add(createRunData(temp));
                 }
             }
-            for (Run run : runsOfUser) {
-                if (LocalDate.parse(run.getStartDatetime(), dtFormatter).isAfter(from) && LocalDate.parse(run.getFinishDatetime(), dtFormatter).isBefore(to)) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String runData = mapper.writeValueAsString(run);
-                    result.add(runData);
-                }
+            if (!result.isEmpty()) {
+                return result;
+            } else {
+                return "Runs in period from " + fromDatetime + " to " + toDatetime + " does not exist";
             }
-            return result;
         } else {
             return "Runner with id " + userId + " does not exist";
         }
     }
 
-    public Object getAllRunsOfRunnerFrom(String userId, String fromDatetime) throws JsonProcessingException {
+    public Object getAllRunsOfRunnerFrom(String userId, String fromDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
-        List<String> result = new ArrayList();
-        LocalDateTime from = LocalDateTime.parse(fromDatetime, dFormatter);
+        List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            while (runs.iterator().hasNext()) {
-                if (runs.iterator().next().getUserId().equals(userId)
-                        && LocalDateTime.parse(runs.iterator().next().getStartDatetime(), dtFormatter).isAfter(from)) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String runData = mapper.writeValueAsString(runs.iterator().next());
-                    result.add(runData);
+            Iterator<Run> iterator = runs.iterator();
+            while (iterator.hasNext()) {
+                Run temp = iterator.next();
+                if (temp.getUserId().equals(userId)
+                        && LocalDateTime.parse(temp.getStartDatetime(), dtFormatter).isAfter(LocalDateTime.parse(fromDatetime, dtFormatter))) {
+                    result.add(createRunData(temp));
                 }
             }
-            return result;
-        }
-        return "Runner with id " + userId + " does not exist";
+            if (!result.isEmpty()) {
+                return result;
+            } else {
+                return "Runs after " + fromDatetime + " does not exist";
+            }
+        } else {
+            return "Runner with id " + userId + " does not exist";
+        }}
 
-    }
-
-    public Object getAllRunsOfRunnerTo(String userId, String toDatetime) throws JsonProcessingException {
+    public Object getAllRunsOfRunnerTo(String userId, String toDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
-        List<String> result = new ArrayList();
-        LocalDateTime to = LocalDateTime.parse(toDatetime, dFormatter);
+        List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            while (runs.iterator().hasNext()) {
-                if (runs.iterator().next().getUserId().equals(userId)
-                        && LocalDateTime.parse(runs.iterator().next().getFinishDatetime(), dtFormatter).isBefore(to)) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String runData = mapper.writeValueAsString(runs.iterator().next());
-                    result.add(runData);
+            Iterator<Run> iterator = runs.iterator();
+            while (iterator.hasNext()) {
+                Run temp = iterator.next();
+                if (temp.getUserId().equals(userId)
+                        && LocalDateTime.parse(temp.getFinishDatetime(), dtFormatter).isBefore(LocalDateTime.parse(toDatetime, dtFormatter))) {
+                    result.add(createRunData(temp));
                 }
             }
-            return result;
+            if (!result.isEmpty()) {
+                return result;
+            } else {
+                return "Runs before " + toDatetime + " does not exist";
+            }
         } else {
             return "Runner with id " + userId + " does not exist";
         }
@@ -210,6 +207,21 @@ public class RunsService {
     private Run getRun(String runId)  {
         Iterable<Run> runners = runsRepository.findAllById(Collections.singleton(runId));
         return runners.iterator().next();
+    }
+
+    private HashMap<String, Object> createRunData(Run temp) {
+        HashMap<String, Object> runData = new HashMap<>();
+        runData.put("id", temp.getId());
+        runData.put("userId", temp.getUserId());
+        runData.put("startDatetime", temp.getStartDatetime());
+        runData.put("startLatitude", temp.getStartLatitude());
+        runData.put("startLongitude", temp.getStartLongitude());
+        runData.put("finishDatetime", temp.getFinishDatetime());
+        runData.put("finishLatitude", temp.getFinishLatitude());
+        runData.put("finishLongitude", temp.getFinishLongitude());
+        runData.put("distance", temp.getDistance());
+        runData.put("averageSpeed", temp.getAverageSpeed());
+        return runData;
     }
 
     private boolean checkDatetime (String datetime) {
