@@ -61,8 +61,27 @@ public class ApiController {
     }
 
     @GetMapping (value = "/getallruns")
-    public Object getUserRuns(@RequestParam (value = "userId") String userId) {
+    public Object getUserRuns(@RequestParam (value = "userId") String userId) throws JsonProcessingException {
         return runsServise.getAllRunsOfRunner(userId).toString();
+    }
+
+    @GetMapping (value = "/getallrunsfromto")
+    public Object getUserRunsFromTo(@RequestParam (value = "userId") String userId,
+                                    @RequestParam (value = "fromDatetime") String fromDatetime,
+                                    @RequestParam (value = "toDatetime") String toDatetime) throws JsonProcessingException {
+        return runsServise.getAllRunsOfRunnerFromTo(userId, fromDatetime, toDatetime).toString() ;
+    }
+
+    @GetMapping (value = "/getallrunsfrom")
+    public Object getUserRunsFrom(@RequestParam (value = "userId") String userId,
+                                    @RequestParam (value = "fromDatetime") String fromDatetime) throws JsonProcessingException {
+        return runsServise.getAllRunsOfRunnerFrom(userId, fromDatetime).toString();
+    }
+
+    @GetMapping (value = "/getallrunsto")
+    public Object getUserRunsTo(@RequestParam (value = "userId") String userId,
+                                  @RequestParam (value = "toDatetime") String toDatetime) throws JsonProcessingException {
+        return runsServise.getAllRunsOfRunnerTo(userId, toDatetime).toString();
     }
 
 }

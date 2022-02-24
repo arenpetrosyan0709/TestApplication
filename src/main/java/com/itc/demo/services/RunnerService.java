@@ -16,7 +16,7 @@ import java.util.List;
 public class RunnerService {
     static final LocalDate MIN_BIRTH_DAY;
     static final LocalDate MAX_BIRTH_DAY;
-    static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    static final DateTimeFormatter dFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     static final String [] symbols = {"!","@","#","$","%","^","*","(",")","№",",",".","_","+","-","=","|","/","<",">","?",":",";", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
 
@@ -195,7 +195,7 @@ public class RunnerService {
     }
 
     private boolean checkInputBirthDate (String birthDate) {
-        LocalDate dateTime = LocalDate.parse(birthDate, formatter);
+        LocalDate dateTime = LocalDate.parse(birthDate, dFormatter);
         return (dateTime.isAfter(MIN_BIRTH_DAY) && dateTime.isBefore(MAX_BIRTH_DAY));
     }
 }

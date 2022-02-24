@@ -1,23 +1,27 @@
 package com.itc.demo.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itc.demo.entities.Run;
 import com.itc.demo.repository.RunnerRepository;
 import com.itc.demo.repository.RunsRepository;
 import com.itc.demo.utils.HaversineAlgorithm;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class RunsService {
 
     private final RunnerRepository runnerRepository;
     private final RunsRepository runsRepository;
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter dFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public RunsService(RunnerRepository runnerRepository, RunsRepository runsRepository) {
         this.runnerRepository = runnerRepository;
@@ -65,8 +69,8 @@ public class RunsService {
                     return "Incorrect DateTime format.";
                 }
 
-                LocalDateTime startDateTime = LocalDateTime.parse(run.getStartDatetime(), formatter);
-                LocalDateTime finishDateTime = LocalDateTime.parse(finishDatetime, formatter);
+                LocalDateTime startDateTime = LocalDateTime.parse(run.getStartDatetime(), dtFormatter);
+                LocalDateTime finishDateTime = LocalDateTime.parse(finishDatetime, dtFormatter);
                 if (finishDateTime.isBefore(startDateTime) || finishDateTime.getYear()!=startDateTime.getYear()) {
                     return "Finish DateTime is not correct.";
                 }
@@ -82,7 +86,9 @@ public class RunsService {
                     run.setDistance(calculatedDistance);
                 }
                 long time = calculateTimeInS(startDateTime, finishDateTime);
-                Long averageSpeed = distance/time;
+                double averageSpeed = (double) distance/ (double) time;
+                double scale = Math.pow(10, 3);
+                averageSpeed =  Math.ceil(averageSpeed * scale) / scale;
                 run.setAverageSpeed(averageSpeed);
                 runsRepository.save(run);
                 return "Success. Run with id " + run.getId() + " has been updated.";
@@ -94,62 +100,89 @@ public class RunsService {
         }
     }
 
-    public Object getAllRunsOfRunner(String userId) {
+    public Object getAllRunsOfRunner(String userId) throws JsonProcessingException {
         boolean runnerExists = runnerRepository.existsById(userId);
+        List<String> result = new ArrayList();
         if (runnerExists) {
-            List<Run> allRuns = runsRepository.findAll();
-            return allRuns.stream().filter(it -> it.getUserId().equals(userId)).collect(Collectors.toList());
+            Iterable<Run> runs = runsRepository.findAll();
+            for (Object run : runs) {
+                ObjectMapper mapper = new ObjectMapper();
+                String runData = mapper.writeValueAsString(run);
+                result.add(runData);
+            }
+            return result;
         } else {
             return "Runner with id " + userId + " does not exist";
         }
     }
 
-    public Object getAllRunsOfRunnerFromTo(String userId, String fromDatetime, String toDatetime) {
+    public Object getAllRunsOfRunnerFromTo(String userId, String fromDatetime, String toDatetime) throws JsonProcessingException {
         boolean runnerExists = runnerRepository.existsById(userId);
+        List<String> result = new ArrayList();
+        LocalDate from = LocalDate.parse(fromDatetime, dFormatter);
+        LocalDate to = LocalDate.parse(toDatetime, dFormatter);
         if (runnerExists) {
-            List<Run> allRuns = runsRepository.findAll();
-            List<Run> userRuns = allRuns.stream().filter(it -> it.getUserId().equals(userId)).collect(Collectors.toList());
-            List<Run> from = userRuns.stream().filter(it ->
-                            LocalDateTime.parse(it.getStartDatetime(), formatter).isAfter(LocalDateTime.parse(fromDatetime, formatter)))
-                            .collect(Collectors.toList());
-            List<Run> fromTo = from.stream().filter(it ->
-                            LocalDateTime.parse(it.getFinishDatetime(), formatter).isBefore(LocalDateTime.parse(toDatetime, formatter)))
-                            .collect(Collectors.toList());
-            return fromTo;
+            Iterable<Run> runs = runsRepository.findAll();
+            List<Run> runsOfUser = new ArrayList<>();
+            while (runs.iterator().hasNext()) {
+                if (runs.iterator().next().getUserId().equals(userId)) {
+                    runsOfUser.add(runs.iterator().next());
+                }
+            }
+            for (Run run : runsOfUser) {
+                if (LocalDate.parse(run.getStartDatetime(), dtFormatter).isAfter(from) && LocalDate.parse(run.getFinishDatetime(), dtFormatter).isBefore(to)) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    String runData = mapper.writeValueAsString(run);
+                    result.add(runData);
+                }
+            }
+            return result;
         } else {
             return "Runner with id " + userId + " does not exist";
         }
     }
 
-    public Object getAllRunsOfRunnerFrom(String userId, String fromDatetime) {
+    public Object getAllRunsOfRunnerFrom(String userId, String fromDatetime) throws JsonProcessingException {
         boolean runnerExists = runnerRepository.existsById(userId);
+        List<String> result = new ArrayList();
+        LocalDateTime from = LocalDateTime.parse(fromDatetime, dFormatter);
         if (runnerExists) {
-            List<Run> allRuns = runsRepository.findAll();
-            List<Run> userRuns = allRuns.stream().filter(it -> it.getUserId().equals(userId)).collect(Collectors.toList());
-            List<Run> from = userRuns.stream().filter(it ->
-                            LocalDateTime.parse(it.getStartDatetime(), formatter).isAfter(LocalDateTime.parse(fromDatetime, formatter)))
-                    .collect(Collectors.toList());
-            return from;
+            Iterable<Run> runs = runsRepository.findAll();
+            while (runs.iterator().hasNext()) {
+                if (runs.iterator().next().getUserId().equals(userId)
+                        && LocalDateTime.parse(runs.iterator().next().getStartDatetime(), dtFormatter).isAfter(from)) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    String runData = mapper.writeValueAsString(runs.iterator().next());
+                    result.add(runData);
+                }
+            }
+            return result;
+        }
+        return "Runner with id " + userId + " does not exist";
+
+    }
+
+    public Object getAllRunsOfRunnerTo(String userId, String toDatetime) throws JsonProcessingException {
+        boolean runnerExists = runnerRepository.existsById(userId);
+        List<String> result = new ArrayList();
+        LocalDateTime to = LocalDateTime.parse(toDatetime, dFormatter);
+        if (runnerExists) {
+            Iterable<Run> runs = runsRepository.findAll();
+            while (runs.iterator().hasNext()) {
+                if (runs.iterator().next().getUserId().equals(userId)
+                        && LocalDateTime.parse(runs.iterator().next().getFinishDatetime(), dtFormatter).isBefore(to)) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    String runData = mapper.writeValueAsString(runs.iterator().next());
+                    result.add(runData);
+                }
+            }
+            return result;
         } else {
             return "Runner with id " + userId + " does not exist";
         }
     }
 
-    public Object getAllRunsOfRunnerTo(String userId, String toDatetime) {
-        boolean runnerExists = runnerRepository.existsById(userId);
-        if (runnerExists) {
-            List<Run> allRuns = runsRepository.findAll();
-            List<Run> userRuns = allRuns.stream().filter(it -> it.getUserId().equals(userId)).collect(Collectors.toList());
-            List<Run> to = userRuns.stream().filter(it ->
-                            LocalDateTime.parse(it.getFinishDatetime(), formatter).isBefore(LocalDateTime.parse(toDatetime, formatter)))
-                    .collect(Collectors.toList());
-            return to;
-        } else {
-            return "Runner with id " + userId + " does not exist";
-        }
-    }
-
-    private long calculateTimeInS(LocalDateTime startDateTime, LocalDateTime finishDateTime) {
+    private long calculateTimeInS( LocalDateTime startDateTime, LocalDateTime finishDateTime) {
         long result = 0;
         long startDays = startDateTime.getDayOfYear();
         long finishDays = finishDateTime.getDayOfYear();
@@ -181,7 +214,7 @@ public class RunsService {
 
     private boolean checkDatetime (String datetime) {
         try {
-            LocalDateTime dateTime = LocalDateTime.parse(datetime, formatter);
+            LocalDateTime dateTime = LocalDateTime.parse(datetime, dtFormatter);
         } catch (Exception e) {
             return false;
         }
