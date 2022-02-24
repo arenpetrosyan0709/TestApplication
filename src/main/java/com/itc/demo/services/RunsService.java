@@ -1,8 +1,7 @@
 package com.itc.demo.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itc.demo.entities.Run;
+import com.itc.demo.entities.Runner;
 import com.itc.demo.repository.RunnerRepository;
 import com.itc.demo.repository.RunsRepository;
 import com.itc.demo.utils.HaversineAlgorithm;
@@ -17,11 +16,15 @@ public class RunsService {
 
     private final RunnerRepository runnerRepository;
     private final RunsRepository runsRepository;
+    private final RunnerService runnerService;
+
     private static final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-    public RunsService(RunnerRepository runnerRepository, RunsRepository runsRepository) {
+    public RunsService(RunnerRepository runnerRepository, RunsRepository runsRepository, RunnerService runnerService) {
         this.runnerRepository = runnerRepository;
-        this.runsRepository = runsRepository; }
+        this.runsRepository = runsRepository;
+        this.runnerService = runnerService;
+    }
 
     public String runStarted (String userId, double startLatitude, double startLongitude, String startDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
@@ -104,7 +107,13 @@ public class RunsService {
             for (Run run : runs) {
                 result.add(createRunData(run));
             }
-            return result;
+            if (!result.isEmpty()) {
+                return result;
+            } else {
+                Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+                Runner runner = runners.iterator().next();
+                return "Runs for Runner " + runner.getFirstName() + " " + runner.getLastName() + " does not exist yet";
+            }
         } else {
             return "Runner with id " + userId + " does not exist";
         }
@@ -127,7 +136,9 @@ public class RunsService {
             if (!result.isEmpty()) {
                 return result;
             } else {
-                return "Runs in period from " + fromDatetime + " to " + toDatetime + " does not exist";
+                Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+                Runner runner = runners.iterator().next();
+                return "Runs for Runner " + runner.getFirstName() + " " + runner.getLastName() + " in period from " + fromDatetime + " to " + toDatetime + " does not exist";
             }
         } else {
             return "Runner with id " + userId + " does not exist";
@@ -150,7 +161,9 @@ public class RunsService {
             if (!result.isEmpty()) {
                 return result;
             } else {
-                return "Runs after " + fromDatetime + " does not exist";
+                Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+                Runner runner = runners.iterator().next();
+                return "Runs for Runner " + runner.getFirstName() + " " + runner.getLastName() + " after " + fromDatetime + " does not exist";
             }
         } else {
             return "Runner with id " + userId + " does not exist";
@@ -172,7 +185,9 @@ public class RunsService {
             if (!result.isEmpty()) {
                 return result;
             } else {
-                return "Runs before " + toDatetime + " does not exist";
+                Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
+                Runner runner = runners.iterator().next();
+                return "Runs for Runner " + runner.getFirstName() + " " + runner.getLastName() + " before " + toDatetime + " does not exist";
             }
         } else {
             return "Runner with id " + userId + " does not exist";
