@@ -241,23 +241,21 @@ public class RunnerService {
         if (allRunsOfRunner instanceof List) {
             if ( ((List<?>) allRunsOfRunner).get(0) instanceof HashMap) {
                 List<HashMap> runs = (List<HashMap>) allRunsOfRunner;
-                if (!runs.isEmpty()) {
-                    long numberOfRuns = runs.size();
-                    long fullDistance = 0;
-                    double avSpeed = 0.0;
-                    double sumOfSpeeds = 0.0;
-                    String fullName = runner.getFirstName() + " " + runner.getLastName();
-                    for (HashMap run : runs) {
-                        fullDistance += (long) run.get("distance");
-                        sumOfSpeeds += (double) run.get("averageSpeed");
-                    }
-                    avSpeed = sumOfSpeeds / numberOfRuns;
-                    result.put("userId", runner.getId());
-                    result.put("fullName", fullName);
-                    result.put("numberOfRuns", numberOfRuns);
-                    result.put("fullDistance", fullDistance);
-                    result.put("averageSpeed", avSpeed);
+                long numberOfRuns = runs.size();
+                long fullDistance = 0;
+                double avSpeed;
+                double sumOfSpeeds = 0.0;
+                String fullName = runner.getFirstName() + " " + runner.getLastName();
+                for (HashMap run : runs) {
+                    fullDistance += (long) run.get("distance");
+                    sumOfSpeeds += (double) run.get("averageSpeed");
                 }
+                avSpeed = sumOfSpeeds / numberOfRuns;
+                result.put("userId", runner.getId());
+                result.put("fullName", fullName);
+                result.put("numberOfRuns", numberOfRuns);
+                result.put("fullDistance", fullDistance);
+                result.put("averageSpeed", avSpeed);
             }
         } else if (allRunsOfRunner instanceof String) {
             return allRunsOfRunner;
