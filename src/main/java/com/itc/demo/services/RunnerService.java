@@ -1,6 +1,5 @@
 package com.itc.demo.services;
 
-import com.itc.demo.entities.Run;
 import com.itc.demo.entities.Runner;
 import com.itc.demo.repository.RunnerRepository;
 import org.springframework.stereotype.Service;
@@ -25,16 +24,13 @@ public class RunnerService {
         MAX_BIRTH_DAY =  LocalDate.now().minusYears(18);
     }
 
-    private final RunnerRepository runnerRepository;
-    private final RunsService runsService;
+    private static RunnerRepository runnerRepository;
 
-    public RunnerService(RunnerRepository runnerRepository, RunsService runsService) {
-        this.runnerRepository = runnerRepository;
-        this.runsService = runsService;
+    public RunnerService(RunnerRepository runnerRepository) {
+        RunnerService.runnerRepository = runnerRepository;
     }
 
-
-    public String add(String firstName, String lastName, String birthDate, String sex) {
+    public static String add(String firstName, String lastName, String birthDate, String sex) {
         String correctFirstName;
         String correctLastName;
         String correctBirthDate;
@@ -75,7 +71,7 @@ public class RunnerService {
         return "Success. Runner with id " + runner.getId() + " has been created.";
     }
 
-    public Object getRunner (String userId) {
+    public static Object getRunner (String userId) {
         boolean exists = runnerRepository.existsById(userId);
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
@@ -87,7 +83,7 @@ public class RunnerService {
         }
     }
 
-    public Object getAllRunners()  {
+    public static Object getAllRunners()  {
         List<HashMap<String, Object>> result = new ArrayList<>();
         Iterable<Runner> runners = runnerRepository.findAll();
         for (Runner runner : runners) {
@@ -100,7 +96,7 @@ public class RunnerService {
         }
     }
 
-    public String delete(String userId) {
+    public static String delete(String userId) {
         boolean exists = runnerRepository.existsById(userId);
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
@@ -112,7 +108,7 @@ public class RunnerService {
         }
     }
 
-    public String edit(String userId, String firstName, String lastName, String birthDate, String sex) {
+    public static String edit(String userId, String firstName, String lastName, String birthDate, String sex) {
         boolean exists = runnerRepository.existsById(userId);
         if (exists) {
             boolean firstNameToEdit = false;
@@ -184,82 +180,84 @@ public class RunnerService {
         }
     }
 
-    public Object getRunnerStat(String userId) {
+    public static Object getRunnerStat(String userId) {
         boolean exists = runnerRepository.existsById(userId);
-        HashMap<String,Object> result;
+        Object result;
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
             Runner runner = runners.iterator().next();
-            Object allRunsOfRunner = runsService.getAllRunsOfRunner(userId);
-            result = (HashMap<String, Object>) createStatInfo(allRunsOfRunner, runner);
+            Object allRunsOfRunner = RunsService.getAllRunsOfRunner(userId);
+            result = createStatInfo(allRunsOfRunner, runner);
         } else {
             return "User with id " + userId + " was not found.";
         }
         return result;
     }
 
-    public Object getRunnerStatFromTo(String userId, String fromDatetime, String toDatetime) {
+    public static Object getRunnerStatFromTo(String userId, String fromDatetime, String toDatetime) {
         boolean exists = runnerRepository.existsById(userId);
-        HashMap<String,Object> result;
+        Object result;
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
             Runner runner = runners.iterator().next();
-            Object allRunsOfRunner = runsService.getAllRunsOfRunnerFromTo(userId, fromDatetime, toDatetime);
-            result = (HashMap<String, Object>) createStatInfo(allRunsOfRunner, runner);
+            Object allRunsOfRunner = RunsService.getAllRunsOfRunnerFromTo(userId, fromDatetime, toDatetime);
+            result = createStatInfo(allRunsOfRunner, runner);
         } else {
             return "User with id " + userId + " was not found.";
         }
         return result;
     }
 
-    public Object getRunnerStatFrom(String userId, String fromDatetime) {
+    public static Object getRunnerStatFrom(String userId, String fromDatetime) {
         boolean exists = runnerRepository.existsById(userId);
-        HashMap<String,Object> result;
+        Object result;
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
             Runner runner = runners.iterator().next();
-            Object allRunsOfRunner = runsService.getAllRunsOfRunnerFrom(userId, fromDatetime);
-            result = (HashMap<String, Object>) createStatInfo(allRunsOfRunner, runner);
+            Object allRunsOfRunner = RunsService.getAllRunsOfRunnerFrom(userId, fromDatetime);
+            result = createStatInfo(allRunsOfRunner, runner);
         } else {
             return "User with id " + userId + " was not found.";
         }
         return result;
     }
 
-    public Object getRunnerStatTo(String userId, String toDatetime) {
+    public static Object getRunnerStatTo(String userId, String toDatetime) {
         boolean exists = runnerRepository.existsById(userId);
-        HashMap<String,Object> result;
+        Object result;
         if (exists) {
             Iterable<Runner> runners = runnerRepository.findAllById(Collections.singleton(userId));
             Runner runner = runners.iterator().next();
-            Object allRunsOfRunner = runsService.getAllRunsOfRunnerTo(userId, toDatetime);
-            result = (HashMap<String, Object>) createStatInfo(allRunsOfRunner, runner);
+            Object allRunsOfRunner = RunsService.getAllRunsOfRunnerTo(userId, toDatetime);
+            result = createStatInfo(allRunsOfRunner, runner);
         } else {
             return "User with id " + userId + " was not found.";
         }
         return result;
     }
 
-    private Object createStatInfo(Object allRunsOfRunner, Runner runner) {
+    private static Object createStatInfo(Object allRunsOfRunner, Runner runner) {
         HashMap<String, Object> result = new HashMap<>();
         if (allRunsOfRunner instanceof List) {
-            List<Run> runs = (List<Run>) allRunsOfRunner;
-            if (!runs.isEmpty()) {
-                long numberOfRuns = runs.size();
-                long fullDistance = 0;
-                double avSpeed = 0.0;
-                double sumOfSpeeds = 0.0;
-                String fullName = runner.getFirstName() + " " + runner.getLastName();
-                for (Run run : runs) {
-                    fullDistance += run.getDistance();
-                    sumOfSpeeds += run.getAverageSpeed();
+            if ( ((List<?>) allRunsOfRunner).get(0) instanceof HashMap) {
+                List<HashMap> runs = (List<HashMap>) allRunsOfRunner;
+                if (!runs.isEmpty()) {
+                    long numberOfRuns = runs.size();
+                    long fullDistance = 0;
+                    double avSpeed = 0.0;
+                    double sumOfSpeeds = 0.0;
+                    String fullName = runner.getFirstName() + " " + runner.getLastName();
+                    for (HashMap run : runs) {
+                        fullDistance += (long) run.get("distance");
+                        sumOfSpeeds += (double) run.get("averageSpeed");
+                    }
+                    avSpeed = sumOfSpeeds / numberOfRuns;
+                    result.put("userId", runner.getId());
+                    result.put("fullName", fullName);
+                    result.put("numberOfRuns", numberOfRuns);
+                    result.put("fullDistance", fullDistance);
+                    result.put("averageSpeed", avSpeed);
                 }
-                avSpeed = sumOfSpeeds / numberOfRuns;
-                result.put("userId", runner.getId());
-                result.put("fullName", fullName);
-                result.put("numberOfRuns", numberOfRuns);
-                result.put("fullDistance", fullDistance);
-                result.put("averageSpeed", avSpeed);
             }
         } else if (allRunsOfRunner instanceof String) {
             return allRunsOfRunner;
@@ -267,7 +265,7 @@ public class RunnerService {
         return result;
     }
 
-    private boolean checkInputName (String name) {
+    private static boolean checkInputName (String name) {
         if (name != null ) {
             int symbolCounter = 0;
             for (String symbol : symbols) {
@@ -281,7 +279,7 @@ public class RunnerService {
         }
     }
 
-    private HashMap<String, Object> createRunnerData(Runner temp) {
+    private static HashMap<String, Object> createRunnerData(Runner temp) {
         HashMap<String, Object> runnerData = new HashMap<>();
         runnerData.put("id", temp.getId());
         runnerData.put("firstName", temp.getFirstName());
@@ -291,7 +289,7 @@ public class RunnerService {
         return runnerData;
     }
 
-    private boolean checkInputBirthDate (String birthDate) {
+    private static boolean checkInputBirthDate (String birthDate) {
         LocalDate dateTime = LocalDate.parse(birthDate, dFormatter);
         return (dateTime.isAfter(MIN_BIRTH_DAY) && dateTime.isBefore(MAX_BIRTH_DAY));
     }

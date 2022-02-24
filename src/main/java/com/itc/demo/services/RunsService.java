@@ -9,24 +9,23 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
 public class RunsService {
 
-    private final RunnerRepository runnerRepository;
-    private final RunsRepository runsRepository;
-    private final RunnerService runnerService;
+    private static RunnerRepository runnerRepository;
+    private static RunsRepository runsRepository;
 
     private static final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     public RunsService(RunnerRepository runnerRepository, RunsRepository runsRepository, RunnerService runnerService) {
         this.runnerRepository = runnerRepository;
         this.runsRepository = runsRepository;
-        this.runnerService = runnerService;
     }
 
-    public String runStarted (String userId, double startLatitude, double startLongitude, String startDatetime) {
+    public static String runStarted (String userId, double startLatitude, double startLongitude, String startDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
         if (runnerExists) {
             if (userId.equals("") || startLatitude == 0.0 || startLongitude == 0.0 || startDatetime.equals("")) {
@@ -49,7 +48,7 @@ public class RunsService {
         }
     }
 
-    public String runFinished (String runId, String userId, double finishLatitude, double finishLongitude, String finishDatetime, Long distance) {
+    public static String runFinished (String runId, String userId, double finishLatitude, double finishLongitude, String finishDatetime, Long distance) {
         boolean exists = runsRepository.existsById(runId);
         if (exists) {
             if (runId.equals("") || userId.equals("") || finishLatitude == 0.0 || finishLongitude == 0.0 || finishDatetime.equals("")) {
@@ -99,7 +98,7 @@ public class RunsService {
         }
     }
 
-    public Object getAllRunsOfRunner(String userId) {
+    public static Object getAllRunsOfRunner(String userId) {
         boolean runnerExists = runnerRepository.existsById(userId);
         List<HashMap> result = new ArrayList();
         if (runnerExists) {
@@ -119,17 +118,23 @@ public class RunsService {
         }
     }
 
-    public Object getAllRunsOfRunnerFromTo(String userId, String fromDatetime, String toDatetime) {
+    public static Object getAllRunsOfRunnerFromTo(String userId, String fromDatetime, String toDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
         List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            Iterator<Run> iterator = runs.iterator();
-            while (iterator.hasNext()) {
-                Run temp = iterator.next();
+            for (Run temp : runs) {
+                LocalDateTime start;
+                LocalDateTime finish;
+                try {
+                    start = LocalDateTime.parse(fromDatetime, dtFormatter);
+                    finish = LocalDateTime.parse(toDatetime, dtFormatter);
+                } catch (DateTimeParseException e) {
+                    return "Incorrect Datetime format";
+                }
                 if (temp.getUserId().equals(userId)
-                && LocalDateTime.parse(temp.getStartDatetime(), dtFormatter).isAfter(LocalDateTime.parse(fromDatetime, dtFormatter))
-                && LocalDateTime.parse(temp.getFinishDatetime(), dtFormatter).isBefore(LocalDateTime.parse(toDatetime, dtFormatter))) {
+                        && LocalDateTime.parse(temp.getStartDatetime(), dtFormatter).isAfter(start)
+                        && LocalDateTime.parse(temp.getFinishDatetime(), dtFormatter).isBefore(finish)) {
                     result.add(createRunData(temp));
                 }
             }
@@ -145,16 +150,20 @@ public class RunsService {
         }
     }
 
-    public Object getAllRunsOfRunnerFrom(String userId, String fromDatetime) {
+    public static Object getAllRunsOfRunnerFrom(String userId, String fromDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
         List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            Iterator<Run> iterator = runs.iterator();
-            while (iterator.hasNext()) {
-                Run temp = iterator.next();
+            for (Run temp : runs) {
+                LocalDateTime start;
+                try {
+                    start = LocalDateTime.parse(fromDatetime, dtFormatter);
+                } catch (DateTimeParseException e) {
+                    return "Incorrect Datetime format";
+                }
                 if (temp.getUserId().equals(userId)
-                        && LocalDateTime.parse(temp.getStartDatetime(), dtFormatter).isAfter(LocalDateTime.parse(fromDatetime, dtFormatter))) {
+                        && LocalDateTime.parse(temp.getStartDatetime(), dtFormatter).isAfter(start)) {
                     result.add(createRunData(temp));
                 }
             }
@@ -169,16 +178,20 @@ public class RunsService {
             return "Runner with id " + userId + " does not exist";
         }}
 
-    public Object getAllRunsOfRunnerTo(String userId, String toDatetime) {
+    public static Object getAllRunsOfRunnerTo(String userId, String toDatetime) {
         boolean runnerExists = runnerRepository.existsById(userId);
         List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
-            Iterator<Run> iterator = runs.iterator();
-            while (iterator.hasNext()) {
-                Run temp = iterator.next();
+            for (Run temp : runs) {
+                LocalDateTime finish;
+                try {
+                    finish = LocalDateTime.parse(toDatetime, dtFormatter);
+                } catch (DateTimeParseException e) {
+                    return "Incorrect Datetime format";
+                }
                 if (temp.getUserId().equals(userId)
-                        && LocalDateTime.parse(temp.getFinishDatetime(), dtFormatter).isBefore(LocalDateTime.parse(toDatetime, dtFormatter))) {
+                        && LocalDateTime.parse(temp.getFinishDatetime(), dtFormatter).isBefore(finish)) {
                     result.add(createRunData(temp));
                 }
             }
@@ -194,7 +207,7 @@ public class RunsService {
         }
     }
 
-    private long calculateTimeInS( LocalDateTime startDateTime, LocalDateTime finishDateTime) {
+    private static long calculateTimeInS(LocalDateTime startDateTime, LocalDateTime finishDateTime) {
         long result = 0;
         long startDays = startDateTime.getDayOfYear();
         long finishDays = finishDateTime.getDayOfYear();
@@ -219,12 +232,12 @@ public class RunsService {
         return result;
     }
 
-    private Run getRun(String runId)  {
+    private static Run getRun(String runId)  {
         Iterable<Run> runners = runsRepository.findAllById(Collections.singleton(runId));
         return runners.iterator().next();
     }
 
-    private HashMap<String, Object> createRunData(Run temp) {
+    private static HashMap<String, Object> createRunData(Run temp) {
         HashMap<String, Object> runData = new HashMap<>();
         runData.put("id", temp.getId());
         runData.put("userId", temp.getUserId());
@@ -239,7 +252,7 @@ public class RunsService {
         return runData;
     }
 
-    private boolean checkDatetime (String datetime) {
+    private static boolean checkDatetime(String datetime) {
         try {
             LocalDateTime dateTime = LocalDateTime.parse(datetime, dtFormatter);
         } catch (Exception e) {
