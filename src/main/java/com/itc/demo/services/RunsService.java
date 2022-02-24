@@ -98,7 +98,7 @@ public class RunsService {
 
     public Object getAllRunsOfRunner(String userId) {
         boolean runnerExists = runnerRepository.existsById(userId);
-        List<HashMap<String, Object>> result = new ArrayList();
+        List<HashMap> result = new ArrayList();
         if (runnerExists) {
             Iterable<Run> runs = runsRepository.findAll();
             for (Run run : runs) {
